@@ -36,16 +36,14 @@ def collect_etcmc():
         else:
             by_country[country] += 1
 
-    pp(by_country)
-
     with connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO `global_nodes_count` (`count`) VALUES (%s)",
                 (str(total_nodes_count),)
             )
-            cursor.execute(
-                "INSERT INTO `etc_node_map` (`country_code`,`value`,`timestamp`) VALUES (%s, %s, now())",
+            cursor.executemany(
+                "INSERT INTO `etc_node_map` (`country_code`,`value`) VALUES (%s, %s)",
                 [(c, str(by_country[c])) for c in by_country]
             )
 
