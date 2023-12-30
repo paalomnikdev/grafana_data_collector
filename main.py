@@ -42,11 +42,11 @@ def collect_etcmc():
         with connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO `global_nodes_count` (`count`) VALUES (%s)",
-                (total_nodes_count,)
+                (str(total_nodes_count),)
             )
             cursor.execute(
                 "INSERT INTO `etc_node_map` (`country_code`,`value`,`timestamp`) VALUES (%s, %s, now())",
-                [(c, by_country[c]) for c in by_country]
+                [(c, str(by_country[c])) for c in by_country]
             )
 
         connection.commit()
