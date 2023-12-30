@@ -42,10 +42,10 @@ def collect_etcmc():
                 "INSERT INTO `global_nodes_count` (`count`) VALUES (%s)",
                 (str(total_nodes_count),)
             )
-            cursor.executemany(
-                "INSERT INTO `etc_node_map` (`country_code`,`value`) VALUES (%s, %s)",
-                [(c, str(by_country[c])) for c in by_country]
-            )
+            # cursor.executemany(
+            #     "INSERT INTO `etc_node_map` (`country_code`,`value`) VALUES (%s, %s)",
+            #     [(c, str(by_country[c])) for c in by_country]
+            # )
 
         connection.commit()
 
