@@ -18,6 +18,10 @@ def cli():
     pass
 
 @cli.command()
+def health():
+    print('health')
+
+@cli.command()
 def collect_etcmc():
     by_country = {}
     res = requests.get('https://api.etcnodes.org/peers')
