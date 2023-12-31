@@ -1,16 +1,17 @@
 import os
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 import click
 import requests
 import pymysql.cursors
 from pprint import pprint as pp
 
-config = dotenv_values('.env')
+load_dotenv()
+
 connection = pymysql.connect(
-    host=config.get('DB_HOST'),
-    user=config.get('DB_USER'),
-    password=config.get('DB_PASS'),
-    database=config.get('DB_NAME'),
+    host=os.getenv('DB_HOST'),
+    user=os.getenv('DB_USER'),
+    password=os.getenv('DB_PASS'),
+    database=os.getenv('DB_NAME'),
 )
 
 @click.group()
@@ -35,6 +36,8 @@ def collect_etcmc():
             by_country[country] = 1
         else:
             by_country[country] += 1
+
+    print(by_country)
 
     with connection:
         with connection.cursor() as cursor:
