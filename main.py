@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
 import click
-import requests
 import pymysql.cursors
+import discord
+import asyncio
+from etcmc import Etcmc
 from pprint import pprint as pp
 
 load_dotenv()
@@ -14,6 +16,25 @@ connection = pymysql.connect(
     database=os.getenv('DB_NAME'),
 )
 
+class DiscordClient(discord.Client):
+    async def on_ready(self):
+        print(f'Logged in as {self.user.name}')
+        
+        guild = self.get_guild(int(os.getenv('SERVER_ID')))
+        if not guild:
+            print("Guild (server) not found.")
+            await self.close()
+            return
+
+        channel = guild.get_channel(int(os.getenv('ETC_CHANNEL_ID')))
+        if not channel:
+            print("Channel not found.")
+            await self.close()
+            return
+
+        await channel.send(os.getenv('message'))
+        await self.close()
+
 @click.group()
 def cli():
     pass
@@ -23,34 +44,15 @@ def health():
     print('health')
 
 @cli.command()
-def collect_etcmc():
-    by_country = {}
-    res = requests.get('https://api.etcnodes.org/peers')
-    nodes = res.json()
-    
-    total_nodes_count = len(nodes)
+def count_etcmc_nodes():
+    Etcmc(connection).store_nodes_count()
 
-    for n in nodes:
-        country = n.get('ip_info').get('countryCode')
-        if not by_country.get(country):
-            by_country[country] = 1
-        else:
-            by_country[country] += 1
-
-    print(by_country)
-
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO `global_nodes_count` (`count`) VALUES (%s)",
-                (str(total_nodes_count),)
-            )
-            # cursor.executemany(
-            #     "INSERT INTO `etc_node_map` (`country_code`,`value`) VALUES (%s, %s)",
-            #     [(c, str(by_country[c])) for c in by_country]
-            # )
-
-        connection.commit()
+@cli.command
+def discord_update():
+    etcmc = Etcmc(connection)
+    os.environ['message'] = etcmc.get_discord_message()
+    client = DiscordClient(intents=discord.Intents.default())
+    asyncio.run(client.start(os.getenv('DISCORD_TOKEN')))
 
 if __name__ == '__main__':
     cli()
